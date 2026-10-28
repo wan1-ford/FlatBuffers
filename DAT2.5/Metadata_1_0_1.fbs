@@ -1,0 +1,84 @@
+// =============================================================================
+// File        : Metadata_1_0_0.fbs
+// Schema      : MetadataNamespace.Metadata (FlatBuffers)
+// Version     : 1.0.1
+// Author      : Robert W. An, Jon Speigle
+// Status      : DRAFT - not baselined
+//
+// Version format : <MAJOR>.<MINOR>.<PATCH>  (file name: Metadata_<MAJOR>_<MINOR>_<PATCH>.fbs)
+//   - MAJOR : breaking change (enum value/field removed, renamed, or re-numbered)
+//   - MINOR : backward-compatible addition (new enum value or new field appended)
+//   - PATCH : comment / documentation only, no schema change
+//
+// Revision history
+//   Version    Date        Author         Compat    Description
+//   1.0.1      10/28/2026  Robert W. An   PATCH     - Comments redefined and clarified 
+//   1.0.0      10/22/2026  Jon Speigle    BREAKING  DAT2.5 updates:
+//                                                   - version format is MAJOR.MINOR.PATCH.
+//                                                   - Play Stream ID (PSID) removed
+//                                                   - CFID renamed to ViewID, then obsoleted 
+//                                                   - Composite Frame Layout (CFL) enum removed
+//                                                   - Debug ViewID values added
+//   DAT2.5.01  09/29/2026  Robert W. An   BREAKING  Initial DAT2.5 schema.
+//                                                   - CFID replaced per DAT 2.5 View Layout Table
+//                                                   - PSID given as hex
+//                                                   - Syntax fixes (commas, identifiers, stray ';')
+// =============================================================================
+
+namespace MetadataNamespace;
+
+// Processed stream quality factor
+enum PSQF : uint8 {
+	INIT 				= 0x00,
+	PS_INACTIVE 		= 0x01,
+	PS_DEGRADED 		= 0x02,
+	PS_VALID 			= 0x03,
+	PS_FAULT		 	= 0x04,
+	PS_VIEWSWITCHING 	= 0x05,
+	FAULT_1 			= 0xFE,
+	FAULT_2 			= 0xFF
+}
+
+// Color Space
+enum ClrSpace: uint8 {
+	INIT 						= 0x00,
+	BT709_YUV422_Full_Swing		= 0x01,
+	BT709_YUV422_Studio_Swing	= 0x02,
+	FAULT_1						= 0xFE,
+	FAULT_2						= 0xFF
+}
+
+// Frame Rate
+enum FRate: uint8 {
+	INIT 			= 0x00,
+	FPS_15			= 0x01,
+	FPS_30			= 0x02,
+	FAULT_1 		= 0xFE,
+	FAULT_2 		= 0xFF
+}
+
+// Frame Rate Validity check
+enum FRateValid: uint8 {
+	INIT 			= 0x00,
+	FR_VALID 		= 0x01,
+	FR_INVALID 		= 0x02,
+	FAULT_1 		= 0xFE,
+	FAULT_2 		= 0xFF
+}
+
+// Metadata structure defintiion
+table Metadata {
+	RollingCounter: 			uint16;		// Rolling Counter is a cnt value that increments with each new frame for diagnostic purpose
+	CurrentViewID: 				uint8;		// Current View ID of the currently rendered display 
+	RequestedViewID: 			uint8;		// Requeste View ID from ADAS ECU
+	NumberOfProcessedStreams: 	uint8;   	// Number of streams in current view
+	ProcessedStreamStatus: 		[PSQF];     // Array. Schema does not enforce length=4.
+	FrameRate: 					FRate;      // Framerate of view generation
+	FrameRateValid: 			FRateValid; // Status of view generation frame rate
+	PipelineStatus: 			uint32;     // Pipeline status information
+	ColorSpace: 				ClrSpace;   // Output video colorspace
+	CheckSumPayload: 			uint32; 	// CheckSum value 
+	CheckSumHeader: 			uint32;		// CheckSum value
+}
+
+root_type Metadata;
